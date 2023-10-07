@@ -1,4 +1,4 @@
-from flask import Flask,request,jsonify,render_template
+from flask import Flask,request,jsonify,render_template, redirect
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
@@ -18,22 +18,51 @@ class Todo(db.Model):
     def __repr__(self)->str:
         return f"{self.id}-{self.title}"
 
-@app.route('/', methods=["POST","GET"])
+@app.route('/', methods=["GET"])
 def welcome():
-    if request.method=="POST":
-        title=request.form['title']
-        description=request.form['description']
-        print(title,description)
     allTodo=Todo.query.all()
     print(allTodo)
     return render_template('index.html',allTodo=allTodo)
 
-@app.route('/alltodos')
-def getAllTodos():
-    allTodo=Todo.query.all()
-    print(allTodo)
-    return "All todos"
-    
+# add todo
+@app.route('/add', methods=["POST","GET"])
+def addTodos():
+    if request.method=="POST":
+        title=request.form['title']
+        description=request.form['description']
+        todo=Todo(title=title,description=description)
+        db.session.add(todo)
+        db.session.commit()
+        return redirect('/')
+
+    else:
+        return "Use POST method to add a new todo"
+
+
+# update todo
+@app.route('/update/<int:id>',methods=["POST","GET"])
+def updateTodo(id):
+    todo=Todo.query.get(id)
+    if request.method=="POST":
+        title=request.form['title']
+        description=request.form['description']
+        # todo=Todo.query.filter_by(id=id).first()
+        todo.title=title
+        todo.description=description
+        # db.session.add(todo)
+        db.session.commit()
+        return redirect('/')
+    return  render_template('update.html',todo=todo)
+
+
+
+# delete todo
+@app.route('/delete/<int:id>')
+def deleteTodo(id):
+    todo=Todo.query.filter_by(id=id).first()
+    db.session.delete(todo)
+    db.session.commit()
+    return redirect('/')
 
 
 if __name__=="__main__":
