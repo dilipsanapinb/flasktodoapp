@@ -18,18 +18,22 @@ class Todo(db.Model):
     def __repr__(self)->str:
         return f"{self.id}-{self.title}"
 
-@app.route('/')
+@app.route('/', methods=["POST","GET"])
 def welcome():
-    todo=Todo(title="First todo", description="My First Todo")
-    db.session.add(todo)
-    db.session.commit()
-    return render_template('index.html')
+    if request.method=="POST":
+        title=request.form['title']
+        description=request.form['description']
+        print(title,description)
+    allTodo=Todo.query.all()
+    print(allTodo)
+    return render_template('index.html',allTodo=allTodo)
 
 @app.route('/alltodos')
 def getAllTodos():
     allTodo=Todo.query.all()
     print(allTodo)
-    return f"All Todos:{allTodo}"
+    return "All todos"
+    
 
 
 if __name__=="__main__":
